@@ -1,0 +1,299 @@
+$gray:			#aaaaaa;
+$black:			#333;
+$white: 		#fdfdfc;
+$margin:		15px;
+$height:		550px;
+
+//for fullscreen
+body {
+	.site-main { position: static; }
+}
+
+mark {
+	background-color: #ff6;
+}
+
+input:focus, button:focus {
+	outline: 0;	
+}
+
+.container {
+	max-width: 100%;
+}
+
+.infowindow {
+	width: 234px;
+	max-height: 250px;
+	padding-bottom: 5px;
+	h3 {
+		margin: 0 0 $margin 0;
+		font-size: 24px;
+	}
+	h5 {
+		margin: 15px 0 0 0;
+		font-size: 14px;
+		font-weight: bold;
+	}
+	address {
+		font-style: normal;
+		margin: 0 0 $margin 0;
+	}
+	a {
+		color: inherit;
+		&.btn-primary {
+			color: #fff;
+		}
+		small::before {
+			content: " / "
+		}
+	}
+	p {
+		margin-bottom: $margin;
+		&:last-child {
+			margin-bottom: 0;
+		}
+	}
+	dl {
+		overflow: auto;
+		margin: 0;
+		dt, dd {
+			float: left;
+			margin: 0;
+			padding: 0;
+		}
+		dt {
+			color: $gray;
+			font-weight: normal;
+			width: 62px;
+			clear: left;
+			margin-right: 6px;
+			text-align: right;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			word-wrap: nowrap;
+			font-size: 12px;
+		}
+		dd {
+			width: 166px;
+		}
+	}
+}
+
+/* meetings */
+#meetings {
+	min-height: $height;
+	padding: $margin;
+	clear: both;
+
+	.controls {
+		min-height: 34px;
+		margin-bottom: 5px;
+		form, .dropdown, .btn-group {
+			margin-bottom: $margin;
+			height: 34px;
+		}
+		input[name=query] {
+			margin: 0;
+		}
+		input, .btn {
+			height: 34px;
+			padding: 6px 12px;
+		}
+		ul { 
+			min-width: 100%; 
+			&.children {
+				padding: 0;
+				list-style-type: none;
+				li {
+					a {
+						display: block;
+						padding: 3px 20px 3px 35px;
+						clear: both;
+						font-weight: 400;
+						line-height: 1.42857143;
+						color: #333;
+						white-space: nowrap;
+						&::before {
+							content: "•";
+							position: absolute;
+							left: 25px; 
+						}
+						&:hover {
+							color: #262626;
+							text-decoration: none;
+							background-color: #f5f5f5;							
+						}
+					}
+					&.active > a { 
+						color: #fff; 
+						background-color: #337ab7;
+					}
+				}
+			}
+		}
+		a { overflow: hidden; }
+	}
+
+	.results {
+		margin-bottom: -60px;
+
+		h1 small {
+			font-size: inherit;
+			&::before {
+				content: " / ";
+			}
+		}
+
+		#table-wrapper { margin: 0 -15px; overflow: hidden; }
+		#table-wrapper table { margin: 0; }
+		
+		table {
+			display: none;
+			thead tr th {
+				line-height: 1;
+				padding-top: 0;
+				text-transform: none;
+			}
+			.region, .address {
+				display: none;
+			}
+			.time {
+				padding-left: 15px;
+				time {
+					white-space: nowrap;
+				}
+			}
+			small {
+				color: $black;
+				&::before {
+					content: " / ";
+				}
+			}
+		}
+			
+		#map {
+			height: $height;
+			display: none;
+			margin: 0;
+		}
+	}
+
+	&.fullscreen {
+	    position: absolute;
+	    top: 0;
+	    left: 0;
+	    width: 100%;
+	    height: 100%;
+	    z-index: 9999;
+		padding: $margin;
+		background-color: $white;
+	}
+
+	&[data-type=map] {
+		#map {
+			display: block;
+		}
+		#map_options {
+			display: block;
+		}
+	}
+
+	&[data-type=list] {
+		table {
+			display: table;
+		}
+		#map_options {
+			display: none;
+		}
+	}
+}
+
+#meeting, #location {
+	margin-bottom: $margin * 2;
+	.page-header { background-color: transparent; } //2013
+	h1 { font-size: 36px; margin-bottom: 4px; }
+	dl, dt { margin: 0; }
+	dd { margin: 0 0 20px; }
+	ul { padding: 0; margin: 0; list-style: none; }
+	small {
+		color: $black;
+		&::before {
+			content: " / ";
+		}
+	}
+}
+
+body.admin-bar {
+	#meetings.fullscreen {
+		padding-top: 47px;
+	}
+}
+
+
+/* Small devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+	#meetings {
+		.controls {
+			margin-bottom: 0;
+			ul.dropdown-menu {
+				max-height: 310px;
+				overflow: auto;
+			}
+		}
+		.results table {
+			margin: 0;
+			.region {
+				display: table-cell;
+			}
+		}
+	}
+}
+
+
+/* Medium devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+	
+}
+
+/* Large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+	#meetings .results table .address {
+		display: table-cell;
+	}
+}
+
+/* Remove Bootstrap's (http://) when printing */
+@media print {
+	a[href]:after {
+		content: none !important;
+	}
+}
+
+/* Special per-theme fixes */
+body {
+	&.divi {
+		div#et-top-navigation ul#top-menu li a { 
+			padding-left: 0; padding-right: 0; padding-top: 0; 
+			&:hover { background-color: transparent; }
+		}
+	}
+	&.twentyfourteen {
+		#page::before { display: none; }
+		#meetings { 
+			width: 100%; 
+			padding-top: 20px;
+			&[data-type=list] { padding-bottom: 0; }
+			table { 
+				border: 0; 
+				td, th { border-right: 0; }
+			}
+		}
+		#meeting, #location {
+			.page-header { 
+				margin: 0 0 $margin;
+				padding: 0 0 $margin;
+				max-width: none;
+			}
+		}
+	}
+}
