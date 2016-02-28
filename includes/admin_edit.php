@@ -83,6 +83,7 @@ function tsml_admin_init() {
 	tsml_assets();
 	
 	remove_meta_box('regiondiv', TSML_TYPE_MEETINGS, 'side');
+    remove_meta_box('citydiv', TSML_TYPE_MEETINGS, 'side');
 	remove_meta_box('wii_post-box1', TSML_TYPE_MEETINGS, 'normal'); //removes weaver ii from east bay site
 
 	add_meta_box('info', 'Meeting Information', 'tsml_meeting_box', TSML_TYPE_MEETINGS, 'normal', 'low');
@@ -105,7 +106,7 @@ function tsml_admin_init() {
 				<option value="<?php echo $key?>"<?php if (strcmp(@$meeting_custom['day'][0], $key) == 0) {?> selected<?php }?>><?php echo $day?></option>
 				<?php }?>
 				<option disabled>──────</option>
-				<option value=""<?php if (!strlen(@$meeting_custom['day'][0])) {?> selected<?php }?>>Appointment</option>
+				<option value=""<?php if (!strlen($meeting_custom['day'][0])) {?> selected<?php }?>>Appointment</option>
 			</select>
 		</div>
 		<div class="meta_form_row">
@@ -161,12 +162,25 @@ function tsml_admin_init() {
 			<?php wp_dropdown_categories(array(
 				'name' => 'region',
 				'taxonomy' => 'region',
+                'show_option_all' => '- Select -',
 				'hierarchical' => true,
 				'hide_empty' => false,
 				'orderby' => 'name',
 				'selected' => @$location_custom['region'][0],
 			))?>
 		</div>
+        <div class="meta_form_row">
+            <label for="city">City</label>
+            <?php wp_dropdown_categories(array(
+                'name' => 'city',
+                'taxonomy' => 'city',
+                'show_option_all' => '- Select -',
+                'hierarchical' => true,
+                'hide_empty' => false,
+                'orderby' => 'name',
+                'selected' => @$location_custom['city'][0],
+            ))?>
+        </div>
 		<div class="meta_form_row">
 			<label>Map</label>
 			<div id="map"></div>

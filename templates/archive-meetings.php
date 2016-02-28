@@ -8,6 +8,7 @@ get_header();
 //parse query string
 $search	= isset($_GET['sq']) ? sanitize_text_field($_GET['sq']) : null;
 $region	= isset($_GET['r']) && array_key_exists($_GET['r'], $tsml_regions) ? $_GET['r'] : null;
+$city = isset($_GET['c']) && array_key_exists($_GET['c'], $tsml_cities) ? $_GET['c'] : null;
 $type	= isset($_GET['t']) && array_key_exists($_GET['t'], $tsml_types[$tsml_program]) ? $_GET['t'] : null;
 $time	= isset($_GET['i']) ? sanitize_text_field(strtolower($_GET['i'])) : null;
 
@@ -32,8 +33,10 @@ $day_default = 'Any Day';
 $day_label = ($day === false) ? $day_default : $tsml_days[$day];
 $time_default = 'Any Time';
 $time_label = $time ? $times[$time] : $time_default;
-$region_default = 'Everywhere';
+$region_default = 'Region';
 $region_label = ($region && array_key_exists($region, $tsml_regions)) ? $tsml_regions[$region] : $region_default;
+$city_default = 'City';
+$city_label = ($city && array_key_exists($city, $tsml_cities)) ? $tsml_cities[$city] : $city_default;
 $type_default = 'Any Type';
 $type_label = ($type && array_key_exists($type, $tsml_types[$tsml_program])) ? $tsml_types[$tsml_program][$type] : $type_default;
 
@@ -41,7 +44,7 @@ $type_label = ($type && array_key_exists($type, $tsml_types[$tsml_program])) ? $
 $locations	= array();
 
 //run query
-$meetings	= tsml_get_meetings(compact('search', 'day', 'time', 'region', 'type'));
+$meetings	= tsml_get_meetings(compact('search', 'day', 'time', 'region', 'type', 'city'));
 //dd($meetings);
 
 class Walker_Regions_Dropdown extends Walker_Category {
@@ -52,6 +55,15 @@ class Walker_Regions_Dropdown extends Walker_Category {
 	function end_el(&$output, $item, $depth=0, $args=array()) {
 		$output .= '</li>';
 	}
+}
+
+class Walker_Cities_Dropdown extends Walker_Category {
+    function start_el(&$output, $category, $depth = 0, $args = array(), $id = 0) {
+        $output .= '<li' . ($args['value'] == esc_attr($category->term_id) ? ' class="active"' : '') . '><a href="#" data-id="' . esc_attr($category->term_id) . '">' . esc_attr($category->name) . '</a>';
+    }
+    function end_el(&$output, $item, $depth=0, $args=array()) {
+        $output .= '</li>';
+    }
 }
 
 ?>
@@ -118,6 +130,26 @@ class Walker_Regions_Dropdown extends Walker_Category {
 					)); ?>
 				</ul>
 			</div>
+            <div class="dropdown" id="city">
+                <a data-toggle="dropdown" class="btn btn-default btn-block">
+                    <span class="selected"><?php echo $city_label?></span>
+                    <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu">
+                    <li<?php if (empty($city)) echo ' class="active"'?>><a href="#"><?php echo $city_default?></a></li>
+                    <li class="divider"></li>
+                    <?php wp_list_categories(array(
+                        'taxonomy' => 'city',
+                        'hierarchical' => true,
+                        'orderby' => 'name',
+                        'title_li' => '',
+                        'hide_empty' => false,
+                        'walker' => new Walker_Cities_Dropdown,
+                        'value' => $city,
+                        'show_option_none' => '',
+                    )); ?>
+                </ul>
+            </div>
 		</div>
 		<div class="col-md-2 col-sm-6">
 			<?php if (count($tsml_types_in_use)) {?>
@@ -171,7 +203,7 @@ class Walker_Regions_Dropdown extends Walker_Category {
 						<th class="name">Meeting</th>
 						<th class="location">Location</th>
 						<th class="address">Address</th>
-						<th class="region">Region</th>
+						<th class="region">Region/City</th>
 					</thead>
 					<tbody>
 						<?php
@@ -185,13 +217,13 @@ class Walker_Regions_Dropdown extends Walker_Category {
 							
 							if (!isset($locations[$meeting['location_id']])) {
 								$locations[$meeting['location_id']] = array(
-									'name' => $meeting['location'],
-									'latitude' => $meeting['latitude'] - 0,
-									'longitude' => $meeting['longitude'] - 0,
-									'link' => tsml_link($meeting['location_url'], $meeting['location'], 'post_type'),
-									'address' => $meeting['address'],
-									'city_state' => $meeting['city'] . ', ' . $meeting['state'],
-									'meetings' => array(),
+									'name'=>$meeting['location'],
+									'latitude'=>$meeting['latitude'] - 0,
+									'longitude'=>$meeting['longitude'] - 0,
+									'link'=>tsml_link($meeting['location_url'], $meeting['location'], 'post_type'),
+									'address'=>$meeting['address'],
+									'city_state'=>$meeting['city'] . ', ' . $meeting['state'],
+									'meetings'=>array(),
 								);
 							}
 		

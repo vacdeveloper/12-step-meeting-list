@@ -33,7 +33,7 @@ function tsml_change_activation_state() {
 //function: register custom post types
 //used: 	init.php on every request, also meeting.php in plugin activation hook
 function tsml_custom_post_types() {
-	global $tsml_regions;
+	global $tsml_regions, $tsml_cities;
 	
 	register_taxonomy('region', TSML_TYPE_MEETINGS, array(
 		'label' => 'Region', 
@@ -41,8 +41,17 @@ function tsml_custom_post_types() {
 		'hierarchical' => true,
 	));
 
+    register_taxonomy('city', TSML_TYPE_MEETINGS, array(
+        'label' => 'City',
+        'labels' => array('menu_name'=>'Cities'),
+        'hierarchical' => true,
+    ));
+
 	//build quick access array of regions
 	$tsml_regions = tsml_get_regions();
+
+    //build quick access array of cities
+    $tsml_cities = tsml_get_cities();
 
 	register_post_type(TSML_TYPE_MEETINGS,
 		array(
@@ -214,7 +223,7 @@ function tsml_get_locations() {
 //function: get meetings based on post information
 //used:		tsml_meetings_api(), single-locations.php, archive-meetings.php 
 function tsml_get_meetings($arguments=array()) {
-	global $tsml_regions;
+	global $tsml_regions, $tsml_cities;
 
 	$meta_query = array('relation'	=> 'AND');
 
@@ -273,8 +282,25 @@ function tsml_get_meetings($arguments=array()) {
 				'value'	=> $regions,
 			);
 		}
-		
 	}
+
+    if (!empty($arguments['city'])) {
+        $city = intval($arguments['city']);
+        $cities = get_term_children($city, 'city');
+        if (empty($cities)) {
+            $meta_query[] = array(
+                'key'   => 'city',
+                'value' => $city,
+            );
+        } else {
+            $cities[] = $city;
+            $meta_query[] = array(
+                'key'   => 'city',
+                'compare' => 'IN',
+                'value' => $cities,
+            );
+        }
+    }
 
 	//todo convert this into a tag field or something
 	if (!empty($arguments['type'])) {
@@ -353,10 +379,12 @@ function tsml_get_meetings($arguments=array()) {
 			$region = !empty($tsml_regions[$tsml_custom['region'][0]]) ? $tsml_regions[$tsml_custom['region'][0]] : '';
 			$sub_region = '';
 		}
-		
+
+        $city = $tsml_cities[$tsml_custom['city'][0]];		
+
 		$locations[$post->ID] = array(
 			'address'			=> $tsml_custom['address'][0],
-			'city'				=> $tsml_custom['city'][0],
+			'city'				=> $city,
 			'state'				=> $tsml_custom['state'][0],
 			'postal_code'		=> isset($tsml_custom['postal_code'][0]) ? $tsml_custom['postal_code'][0] : null,
 			'country'			=> isset($tsml_custom['country'][0]) ? $tsml_custom['country'][0] : null,
@@ -544,7 +572,7 @@ function tsml_get_location() {
 	$location = get_post();
 	$custom = get_post_meta($location->ID);
 	foreach ($custom as $key=>$value) {
-		$location->{$key} = htmlentities($value[0], ENT_QUOTES);
+		$location->{$key} = $value[0];
 	}
 	$location->post_title	= htmlentities($location->post_title, ENT_QUOTES);
 	$location->notes 		= nl2br(esc_html($location->post_content));
@@ -558,7 +586,7 @@ function tsml_get_meeting() {
 	$location				= get_post($meeting->post_parent);
 	$custom					= array_merge(get_post_meta($meeting->ID), get_post_meta($location->ID));
 	foreach ($custom as $key=>$value) {
-		$meeting->{$key} = ($key == 'types') ? $value[0] : htmlentities($value[0], ENT_QUOTES);
+		$meeting->{$key} = $value[0];
 	}
 	$meeting->types				= empty($meeting->types) ? array() : unserialize($meeting->types);
 	$meeting->post_title		= htmlentities($meeting->post_title, ENT_QUOTES);
@@ -590,6 +618,15 @@ function tsml_get_regions() {
 	$region_terms = get_terms('region', array('hide_empty' => false));
 	foreach ($region_terms as $region) $tsml_regions[$region->term_id] = $region->name;
 	return $tsml_regions;
+}
+
+//function: load all cities into a flat array
+//used:     tsml_custom_post_types()
+function tsml_get_cities() {
+    $tsml_cities = array();
+    $city_terms = get_terms('city', array('hide_empty' => false));
+    foreach ($city_terms as $city) $tsml_cities[$city->term_id] = $city->name;
+    return $tsml_cities;
 }
 
 //api ajax function
@@ -924,7 +961,7 @@ function tsml_import($meetings, $delete=false) {
 		}
 		
 		//handle groups (can't have a group if group name not specified)
-		if (!empty($meeting['group'])) $meeting['group'] = sanitize_text_field($meeting['group']);
+		$meeting['group'] = sanitize_text_field($meeting['group']);
 		if (!empty($meeting['group'])) {
 			if (!array_key_exists($meeting['group'], $groups)) {
 				$group_id = wp_insert_post(array(

@@ -15,6 +15,7 @@ jQuery(function($){
 			day: 	$('#day li.active a').attr('data-id'),
 			time: $('#time li.active a').attr('data-id'),
 			region: $('#region li.active a').attr('data-id'),
+            city: $('#city li.active a').attr('data-id'),
 			type: $('#type li.active a').attr('data-id'),
 		}
 		
@@ -24,6 +25,7 @@ jQuery(function($){
 		querystring.d = data.day ? data.day : 'any';
 		if (data.time) querystring.i = data.time;
 		if (data.region) querystring.r = data.region;
+        if (data.city) querystring.c = data.city;
 		if (data.type) querystring.t = data.type;
 		querystring = jQuery.param(querystring);
 		//console.log('querystring is ' + querystring)
@@ -56,16 +58,18 @@ jQuery(function($){
 			if (!response.length) {
 
 				//if keyword and no results, clear other parameters and search again
-				if (data.search && (typeof data.day !== 'undefined' || typeof data.region !== 'undefined' || typeof data.time !== 'undefined' || typeof data.type !== 'undefined')) {
+				if (data.search && (typeof data.day !== 'undefined' || typeof data.region !== 'undefined' || typeof data.city !== 'undefined' || typeof data.time !== 'undefined' || typeof data.type !== 'undefined')) {
 					$('#day li').removeClass('active').first().addClass('active');
 					$('#time li').removeClass('active').first().addClass('active');
 					$('#region li').removeClass('active').first().addClass('active');
+                    $('#city li').removeClass('active').first().addClass('active');
 					$('#type li').removeClass('active').first().addClass('active');
 
 					//set selected text
 					$('#day span.selected').html($('#day li:first-child a').html());
 					$('#time span.selected').html($('#time li:first-child a').html());
 					$('#region span.selected').html($('#region li:first-child a').html());
+                    $('#city span.selected').html($('#city li:first-child a').html());
 					$('#type span.selected').html($('#type li:first-child a').html());
 					return doSearch();
 				}
@@ -95,8 +99,6 @@ jQuery(function($){
 					if (querystring.length) {
 						obj.url = obj.url + ((obj.url.indexOf('?') > -1) ? '&' : '?');
 						obj.url = obj.url + querystring;
-						obj.location_url = obj.location_url + ((obj.location_url.indexOf('?') > -1) ? '&' : '?');
-						obj.location_url = obj.location_url + querystring;
 					}
 
 					//add gender designation
@@ -109,14 +111,13 @@ jQuery(function($){
 					//save location info
 					if (!locations[obj.location_id]) {
 						locations[obj.location_id] = {
-							name: obj.location,
-							address: obj.address,
-							latitude: obj.latitude,
-							longitude: obj.longitude,
-							city: obj.city,
-							state: obj.state,
-							url: obj.location_url,
-							meetings: []
+							name : obj.location,
+							address : obj.address,
+							latitude : obj.latitude,
+							longitude : obj.longitude,
+							city : obj.city,
+							state : obj.state,
+							meetings : []
 						};
 					}
 
@@ -135,7 +136,7 @@ jQuery(function($){
 						'<td class="name"><a href="' + obj.url + '">' + highlight(obj.name, search) + '</a><div class="visible-print-block">' + (obj.sub_region || obj.region || '') + '</div></td>' + 
 						'<td class="location">' + highlight(obj.location, search) + '<div class="visible-print-block">' + highlight(obj.address, search) + '</div></td>' + 
 						'<td class="address hidden-print">' + highlight(obj.address, search) + '</td>' + 
-						'<td class="region hidden-print">' + (obj.sub_region || obj.region || '') + '</td>' + 
+						'<td class="region hidden-print">' + (obj.sub_region || obj.region || '') + (('/'+obj.city) || '') +'</td>' + 
 					'</tr>')
 				});
 
@@ -170,7 +171,8 @@ jQuery(function($){
 								for (var day in meetings) {
 									meetings_list += '<h5>' + day + '</h5><dl>' + meetings[day] + '</dl>';
 								}
-								infowindow.setContent('<div class="infowindow"><h3><a href="' + obj.url + '">' + obj.name + '</a></h3><address>' + obj.address + '<br>' + obj.city + ', ' + obj.state + '</address>' + meetings_list + '</div>');
+
+								infowindow.setContent('<div class="infowindow"><h3>' + obj.name + '</h3><address>' + obj.address + '<br>' + obj.city + ', ' + obj.state + '</address>' + meetings_list + '</div>');
 								infowindow.open(map, marker);
 							}
 						})(marker, obj));					
@@ -229,6 +231,11 @@ jQuery(function($){
 			$('#region li').removeClass('active');
 			$('#region span.selected').html($(this).html());
 		}
+
+        if ($(this).closest('.dropdown').attr('id') == 'city') {
+            $('#city li').removeClass('active');
+            $('#city span.selected').html($(this).html());
+        }
 
 		//type only one
 		if ($(this).closest('.dropdown').attr('id') == 'type') {
@@ -346,9 +353,12 @@ jQuery(function($){
 		if ($('#meetings #region li.active').index()) {
 			string += ' in ' + $('#meetings #region span.selected').text();
 		}
+        if ($('#meetings #city li.active').index()) {
+            string += ' in ' + $('#meetings #city span.selected').text();
+        }
 		document.title = string;
 	}
-	if ($('body').hasClass('post-type-archive-meetings')) updateTitle();
+	updateTitle();
 	
 	//resize fullscreen on resize
 	$(window).resize(function(e){
@@ -397,7 +407,7 @@ function loadMap(locations) {
 			});
 
 			//create infowindow content
-			marker.content = '<div class="infowindow"><h3>' + location.link + '</h3>' +
+			marker.content = '<div class="infowindow"><h3><a href="' + location.url + '">' + location.name + '</h3>' +
 				'<address>' + location.address + '<br>' + location.city_state + '</address>';
 				
 			var current_day = null;

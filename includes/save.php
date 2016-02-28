@@ -25,6 +25,7 @@ function tsml_save_post(){
 	update_post_meta($post->ID, 'day',			$_POST['day']);
 	update_post_meta($post->ID, 'time',			sanitize_text_field($_POST['time']));
 	update_post_meta($post->ID, 'region',		intval($_POST['region'])); //cache region on meeting
+    update_post_meta($post->ID, 'city',         intval($_POST['city']));
 	if (is_array($_POST['types'])) {
 		update_post_meta($post->ID, 'types',	array_map('esc_attr', $_POST['types']));
 	}
@@ -57,17 +58,17 @@ function tsml_save_post(){
 	//update address & info on location
 	update_post_meta($location_id, 'formatted_address',	sanitize_text_field($_POST['formatted_address']));
 	update_post_meta($location_id, 'address',			sanitize_text_field($_POST['address']));
-	update_post_meta($location_id, 'city',				sanitize_text_field($_POST['city']));
 	update_post_meta($location_id, 'state',				sanitize_text_field($_POST['state']));
 	update_post_meta($location_id, 'postal_code',		sanitize_text_field($_POST['postal_code']));
 	update_post_meta($location_id, 'country',			sanitize_text_field($_POST['country']));
 	update_post_meta($location_id, 'latitude',			floatval($_POST['latitude']));
 	update_post_meta($location_id, 'longitude',			floatval($_POST['longitude']));
 	update_post_meta($location_id, 'region',			intval($_POST['region']));
+    update_post_meta($location_id, 'city',              intval($_POST['city']));
 
 	//update region caches for other meetings at this location
 	$meetings = tsml_get_meetings(array('location_id' => $location_id));
-	foreach ($meetings as $meeting) update_post_meta($meeting['id'], 'region', intval($_POST['region'])); 	
+	foreach ($meetings as $meeting) update_post_meta($meeting['id'], 'region', intval($_POST['region']));
 
 	//set parent
 	wp_update_post(array(

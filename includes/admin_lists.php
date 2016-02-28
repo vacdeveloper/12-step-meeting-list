@@ -9,6 +9,7 @@ function tmsl_admin_meetings_columns($defaults) {
     	'day'		=>__('Day', '12-step-meeting-list'),
     	'time'		=>__('Time', '12-step-meeting-list'),
     	'region'	=>__('Region', '12-step-meeting-list'),
+        'city'      =>__('City', '12-step-meeting-list'),
     	'date'		=>__('Date', '12-step-meeting-list'),
     );	
 }
@@ -23,7 +24,7 @@ function tsml_delete_post($post_id) {
 # Custom list values for meetings
 add_action('manage_meetings_posts_custom_column', 'tmsl_admin_meetings_custom_column', 10, 2);
 function tmsl_admin_meetings_custom_column($column_name, $post_ID) {
-	global $tsml_days, $tsml_regions;
+	global $tsml_days, $tsml_regions, $tsml_cities;
 	if ($column_name == 'day') {
 		$day = get_post_meta($post_ID, 'day', true);
 		echo (empty($day) && $day !== '0') ? __('Appointment', '12-step-meeting-list') : $tsml_days[$day];
@@ -31,7 +32,9 @@ function tmsl_admin_meetings_custom_column($column_name, $post_ID) {
 		echo tsml_format_time(get_post_meta($post_ID, 'time', true));
 	} elseif ($column_name == 'region') {
 		echo @$tsml_regions[get_post_meta($post_ID, 'region', true)];
-	}
+	} elseif ($column_name == 'city') {
+        echo @$tsml_cities[get_post_meta($post_ID, 'city', true)];
+    }
 }
 
 # Set custom meetings columns to be sortable
@@ -40,6 +43,7 @@ function tsml_admin_meetings_sortable_columns($columns) {
 	$columns['day']		= 'day';
 	$columns['time']	= 'time';
 	$columns['region']	= 'region';
+    $columns['city']    = 'city';
 	return $columns;
 }
 
@@ -63,6 +67,11 @@ function tsml_sorting($vars) {
 		            'meta_key' => 'region',
 		            'orderby' => 'meta_value'
 		        ));
+            case 'city':
+                return array_merge($vars, array(
+                    'meta_key' => 'city',
+                    'orderby' => 'meta_value'
+                ));
     	}
     }
     return $vars;
@@ -106,6 +115,16 @@ function tsml_restrict_manage_posts() {
 			'name' => 'region',
 			'selected' => empty($_GET['region']) ? null : $_GET['region'],
 		));
+
+        wp_dropdown_categories(array(
+            'taxonomy' => 'city',
+            'orderby' => 'name',
+            'hierarchical' => true,
+            'hide_if_empty' => true,
+            'show_option_all' => __('Cities', '12-step-meeting-list'),
+            'name' => 'city',
+            'selected' => empty($_GET['city']) ? null : $_GET['city'],
+        ));
 	}
 }
 
@@ -117,5 +136,9 @@ function tsml_parse_query($query){
     if ($pagenow == 'edit.php' && isset($qv['region']) && is_numeric($qv['region'])) {
 		$term = get_term_by('id', $qv['region'], 'region');
 		$qv['region'] = ($term ? $term->slug : '');
+    }
+    if ($pagenow == 'edit.php' && isset($qv['city']) && is_numeric($qv['city'])) {
+        $term = get_term_by('id', $qv['city'], 'city');
+        $qv['city'] = ($term ? $term->slug : '');
     }
 }
